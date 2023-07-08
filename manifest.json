@@ -1,0 +1,22 @@
+{
+  "name": "Figblox",
+  "id": "1259633080534983873",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "editorType": [
+    "dev"
+  ],
+  "capabilities": [
+    "codegen"
+  ],
+  "codegenLanguages": [
+    {
+      "label": "React",
+      "value": "react"
+    },
+    {
+      "label": "RobloxTS",
+      "value": "rbxts"
+    }
+  ]
+}

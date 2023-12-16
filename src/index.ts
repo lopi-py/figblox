@@ -31,7 +31,7 @@ function createLayout(node: FrameNode, parent: SceneNode): ReactElement {
 
     props.SortOrder = new Enum("SortOrder", "OrderLayout");
 
-    return createElement(node.layoutWrap == "WRAP" ? "UIGridLayout" : "UIListLayour", props);
+    return createElement(node.layoutWrap == "WRAP" ? "UIGridLayout" : "UIListLayout", props);
 }
 
 /**

@@ -39,7 +39,7 @@ export function findChildNamed(node: FrameNode, name: string): FindResult {
     return node.findChild((child) => (child.type == "GROUP" || child.type == "FRAME") && child.name == name) as FindResult;
 }
 
-export function objectLength(obj: object): number {
+export function getLength(obj: object): number {
     return Object.keys(obj).length;
 }
 

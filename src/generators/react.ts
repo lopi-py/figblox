@@ -1,12 +1,12 @@
 import { Color3, Enum, Font, ReactElement, UDim, UDim2, Vector2 } from "../roblox";
-import { objectLength, round } from "../util";
+import { getLength, round } from "../util";
 import BaseGenerator from "./generator";
 
 export default class ReactGenerator extends BaseGenerator {
     element(e: ReactElement, name?: string) {
         this.write(`e("${e.className}"`);
 
-        if (!e.props || objectLength(e.props) == 0) {
+        if (!e.props || getLength(e.props) == 0) {
             this.write(` `);
         } else {
             this.writeLine(`, {`);
@@ -45,7 +45,7 @@ export default class ReactGenerator extends BaseGenerator {
             this.dedent();
         }
 
-        if (!e.children || objectLength(e.children) == 0) {
+        if (!e.children || getLength(e.children) == 0) {
             this.writeLine(`})${name ? "," : ""}`);
             return;
         }

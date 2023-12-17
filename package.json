@@ -4,13 +4,12 @@
   "description": "A plugin to convert a Figma design into Roblox",
   "main": "out/index.js",
   "scripts": {
-    "dev": "concurrently kill-others \"tsc -w\" \"webpack w\"",
-    "build": "tsc && webpack"
+    "build": "tsc && webpack --mode production"
   },
   "author": "Lopy",
   "license": "MIT",
   "devDependencies": {
-    "@figma/plugin-typings": "^1.70.0",
+    "@figma/plugin-typings": "^1.82.0",
     "concurrently": "^8.2.0",
     "typescript": "*"
   },

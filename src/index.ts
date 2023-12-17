@@ -1,7 +1,6 @@
 import { SCROLLING_CONTENT_NAME, SCROLLING_SCROLLBAR_NAME } from "./constants";
-import BaseGenerator from "./generators/generator";
-import { Language, getGenerator } from "./generators/index";
-import { Children, Enum, Font, Props, ReactElement, UDim, UDim2, Vector2, createElement } from "./roblox";
+import { Children, Enum, Font, Instance, Properties, UDim, UDim2, Vector2, createInstance } from "./roblox";
+import { translate } from "./translators/index";
 import { findChildNamed, findFirstChild, getColor, getFont, getParent } from "./util";
 
 /**
@@ -10,28 +9,28 @@ import { findChildNamed, findFirstChild, getColor, getFont, getParent } from "./
  * @param parent node's parent
  * @returns UIListLayout or UIGridLayout
  */
-function createLayout(node: FrameNode, parent: SceneNode): ReactElement {
+function createLayout(node: FrameNode, parent: SceneNode): Instance {
     const template = findFirstChild(node);
     if (!template || template.type != "FRAME") {
         throw `${node.name} does not have a valid template`;
     }
 
-    const props: Props = {};
+    const props: Properties = {};
 
     if (node.layoutWrap == "WRAP") {
         props.CellPadding = new UDim2(node.itemSpacing / parent.width, node.counterAxisSpacing! / parent.height);
         props.CellSize = new UDim2(template.width / node.width, template.height / node.height);
     } else if (node.layoutMode == "HORIZONTAL") {
-        props.Padding = new UDim(node.itemSpacing / node.width);
+        props.Padding = new UDim(node.itemSpacing / node.width, 0);
         props.FillDirection = new Enum("FillDirection", "Horizontal");
     } else {
-        props.Padding = new UDim(node.itemSpacing / node.height);
+        props.Padding = new UDim(node.itemSpacing / node.height, 0);
         props.FillDirection = new Enum("FillDirection", "Vertical");
     }
 
-    props.SortOrder = new Enum("SortOrder", "OrderLayout");
+    props.SortOrder = new Enum("SortOrder", "LayoutOrder");
 
-    return createElement(node.layoutWrap == "WRAP" ? "UIGridLayout" : "UIListLayout", props);
+    return createInstance(node.layoutWrap == "WRAP" ? "UIGridLayout" : "UIListLayout", props);
 }
 
 /**
@@ -39,7 +38,7 @@ function createLayout(node: FrameNode, parent: SceneNode): ReactElement {
  * @param node current node
  * @returns TextLabel
  */
-function createText(node: TextNode): ReactElement {
+function createText(node: TextNode): Instance {
     const font = node.fontName as FontName;
     const [weight, style] = getFont(font);
 
@@ -47,7 +46,6 @@ function createText(node: TextNode): ReactElement {
     switch (node.textAlignHorizontal) {
         case "LEFT":
             xAlign = "Left";
-            console.log("reace");
             break;
         case "RIGHT":
             xAlign = "Right";
@@ -64,9 +62,9 @@ function createText(node: TextNode): ReactElement {
             break;
     }
 
-    return createElement("TextLabel", {
+    return createInstance("TextLabel", {
         BackgroundTransparency: 1,
-        FontFace: new Font(font.family, weight, style),
+        FontFace: new Font(font.family, new Enum("FontWeight", weight), new Enum("FontStyle", style)),
         Text: node.characters,
         TextScaled: true,
         TextColor3: getColor(node),
@@ -82,13 +80,13 @@ function createText(node: TextNode): ReactElement {
  * @param content scrolling frame's content
  * @returns ScrollingFrame
  */
-function createScrolling(node: FrameNode, scrollbar: FrameNode, content: FrameNode): ReactElement {
+function createScrolling(node: FrameNode, scrollbar: FrameNode, content: FrameNode): Instance {
     const template = findFirstChild(content);
     if (!template || template.type != "FRAME") {
         throw `${node.name} does not have a valid template`;
     }
 
-    return createElement("ScrollingFrame", {
+    return createInstance("ScrollingFrame", {
         CanvasSize: new UDim2(0, 0),
         AutomaticCanvasSize: new Enum("AutomaticSize", "Y"),
         ScrollingDirection: new Enum("ScrollingDirection", "Y"),
@@ -104,19 +102,19 @@ function createScrolling(node: FrameNode, scrollbar: FrameNode, content: FrameNo
  * @param parent node's parent
  * @returns the element to be converted into code
  */
-function createNode(node: SceneNode, parent: FrameNode): ReactElement {
+function createNode(node: SceneNode, parent: FrameNode): Instance {
     // initialize element properties
     let className = "Frame";
-    let props: Props = {};
+    let props: Properties = {};
     let children: Children = {};
 
     // screen frame (ui container)
     const ancestor = parent ? getParent(parent) : undefined;
 
     // merge the given element with the current node's element
-    function merge(element: ReactElement) {
+    function merge(element: Instance) {
         className = element.className;
-        props = { ...props, ...element.props };
+        props = { ...props, ...element.properties };
         children = { ...children, ...element.children };
     }
 
@@ -131,7 +129,7 @@ function createNode(node: SceneNode, parent: FrameNode): ReactElement {
         props.Size = new UDim2(node.width / parent.width, node.height / parent.height);
 
         // add an aspect ratio to keep the dimensions
-        children.Aspect = createElement("UIAspectRatioConstraint", {
+        children.Aspect = createInstance("UIAspectRatioConstraint", {
             AspectRatio: node.width / node.height,
         });
     }
@@ -155,21 +153,21 @@ function createNode(node: SceneNode, parent: FrameNode): ReactElement {
         merge(createText(node));
     }
 
-    return createElement(className, props, children);
+    return createInstance(className, props, children);
+}
+
+function raiseError(e: string): CodegenResult[] {
+    return [{ title: "ERROR!", code: `"${e}"`, language: "JSON" }]
 }
 
 figma.codegen.on("generate", ({ node, language }) => {
     const parent = getParent(node);
-    if (!parent) {
-        return [BaseGenerator.error(`Cannot find parent for ${node.name}`)];
-    }
+    if (!parent)
+        return raiseError(`Cannot find parent for ${node.name}`)
 
     try {
-        const gen = getGenerator(language as Language, node.name);
-        gen.element(createNode(node, parent));
-
-        return [gen.generate()];
+        return [translate(language as Framework, createNode(node, parent))];
     } catch (e) {
-        return [BaseGenerator.error(e as string)];
+        return raiseError(e as string)
     }
 });

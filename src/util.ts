@@ -25,21 +25,31 @@ export function getLength(obj: object): number {
     return Object.keys(obj).length;
 }
 
+export function getUniqueFill(node: GeometryMixin): SolidPaint | undefined {
+    const fills = node.fills as Paint[]
+    const fill = fills[0]
+
+    if (!fill || fill.type != "SOLID")
+        return
+
+    return fill
+}
+
 export function getColor(node: GeometryMixin): Color3 | undefined {
-    const fills = node.fills as Paint[];
-    const first = fills[0];
+    const fill = getUniqueFill(node)
+    if (!fill)
+        return
 
-    if (!first || first.type != "SOLID") {
-        return;
-    }
+    const { r, g, b } = fill.color
+    return new Color3(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
+}
 
-    const { r, g, b } = first.color;
+export function getTransparency(node: GeometryMixin): number | undefined {
+    const fill = getUniqueFill(node)
+    if (!fill || !fill.opacity)
+        return
 
-    if (r == 0 && g == 0 && b == 0) {
-        return;
-    }
-
-    return new Color3(r, g, b);
+    return (1 - fill.opacity)
 }
 
 export function getFont(node: TextNode): [string, string, string] {

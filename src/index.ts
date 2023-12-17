@@ -2,7 +2,7 @@ import { SCROLLING_CONTENT_NAME, SCROLLING_SCROLLBAR_NAME } from "./constants";
 import { createUIFlexItem, createUIListLayout, createUIPadding } from "./layout";
 import { Children, Enum, Font, Instance, Properties, UDim2, createInstance } from "./roblox";
 import { Framework, translate } from "./translators/index";
-import { findChildNamed, getColor, getFont, getParent } from "./util";
+import { findChildNamed, getColor, getFont, getParent, getTransparency } from "./util";
 
 function hasLayout(node: FrameNode): boolean {
     return node.layoutMode != "NONE"
@@ -41,8 +41,11 @@ function createTextLabel(node: TextNode): Instance {
     props.BackgroundTransparency = 1
     props.FontFace = new Font(family, new Enum("FontWeight", weight), new Enum("FontStyle", style))
     props.Text = node.characters
-    props.TextColor3 = getColor(node)
-    props.TextSize = node.fontSize as number
+    props.TextScaled = true
+
+    const color = getColor(node)
+    if (color)
+        props.TextColor3 = color
 
     switch (node.textAlignHorizontal) {
         case "LEFT":
@@ -68,6 +71,14 @@ function createTextLabel(node: TextNode): Instance {
 function createFrame(node: FrameNode): Instance {
     const [props, children] = getCommonPropsChildren(node)
 
+    const color = getColor(node)
+    if (color)
+        props.BackgroundColor3 = color
+
+    const transparency = getTransparency(node)
+    if (transparency)
+        props.BackgroundTransparency = transparency
+
     if (hasLayout(node))
         children.layout = createUIListLayout(node)
 
@@ -80,6 +91,14 @@ function createFrame(node: FrameNode): Instance {
 function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: FrameNode): Instance {
     const [props, children] = getCommonPropsChildren(node)
 
+    const color = getColor(node)
+    if (color)
+        props.BackgroundColor3 = color
+
+    const transparency = getTransparency(node)
+    if (transparency)
+        props.BackgroundTransparency = transparency
+
     props.CanvasSize = new UDim2(0, 0)
     props.AutomaticCanvasSize = new Enum("AutomaticSize", "Y")
     props.ScrollingDirection = new Enum("ScrollingDirection", "Y")
@@ -88,8 +107,8 @@ function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: Fr
 
     children.layout = createUIListLayout(content)
 
-    if (hasPadding(node))
-        children.padding = createUIPadding(node)
+    if (hasPadding(content))
+        children.padding = createUIPadding(content)
 
     return createInstance("ScrollingFrame", props, children)
 }
@@ -111,18 +130,18 @@ function robloxify(node: SceneNode): Instance {
     throw `Cannot convert a ${node.type} node type `
 }
 
-function raiseError(e: string): CodegenResult[] {
+function codegenError(e: string): CodegenResult[] {
     return [{ title: "ERROR!", code: `"${e}"`, language: "JSON" }]
 }
 
 figma.codegen.on("generate", ({ node, language }) => {
     const parent = getParent(node);
     if (!parent)
-        return raiseError(`Cannot find parent for ${node.name}`)
+        return codegenError(`Cannot find parent for ${node.name}`)
 
     try {
         return [translate(language as Framework, robloxify(node))];
     } catch (e) {
-        return raiseError(e as string)
+        return codegenError(e as string)
     }
 });

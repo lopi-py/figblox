@@ -1,8 +1,10 @@
 import { Color3 } from "./roblox";
 
-type FindResult = FrameNode | undefined;
+export function getLength(obj: object): number {
+    return Object.keys(obj).length;
+}
 
-export function getParent(child: SceneNode): FindResult {
+export function getParent(child: SceneNode): FrameNode | undefined {
     if (!child.parent) {
         return;
     }
@@ -17,12 +19,8 @@ export function getParent(child: SceneNode): FindResult {
     return;
 }
 
-export function findChildNamed(node: FrameNode, name: string): FindResult {
-    return node.findChild((child) => (child.type == "GROUP" || child.type == "FRAME") && child.name == name) as FindResult;
-}
-
-export function getLength(obj: object): number {
-    return Object.keys(obj).length;
+export function findChildNamed(node: FrameNode, name: string): FrameNode | undefined {
+    return node.findChild((child) => child.name == name && child.type == "FRAME") as FrameNode | undefined;
 }
 
 export function getUniqueFill(node: GeometryMixin): SolidPaint | undefined {

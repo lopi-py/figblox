@@ -1,4 +1,4 @@
-export type Value = boolean | number | string | Color3 | Enum | Font | UDim | UDim2 | Vector2 | undefined;
+export type Value = boolean | number | string | Color3 | Enum | Font | UDim | UDim2 | Vector2;
 
 export interface Properties {
     [key: string]: Value;

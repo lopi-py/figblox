@@ -1,159 +1,114 @@
 import { SCROLLING_CONTENT_NAME, SCROLLING_SCROLLBAR_NAME } from "./constants";
-import { Children, Enum, Font, Instance, Properties, UDim, UDim2, Vector2, createInstance } from "./roblox";
+import { createUIFlexItem, createUIListLayout, createUIPadding } from "./layout";
+import { Children, Enum, Font, Instance, Properties, UDim2, createInstance } from "./roblox";
 import { Framework, translate } from "./translators/index";
-import { findChildNamed, findFirstChild, getColor, getFont, getParent } from "./util";
+import { findChildNamed, getColor, getFont, getParent } from "./util";
 
-/**
- * Create a UIListLayout or UIGridLayout depending on the needs
- * @param node current node
- * @param parent node's parent
- * @returns UIListLayout or UIGridLayout
- */
-function createLayout(node: FrameNode, parent: SceneNode): Instance {
-    const template = findFirstChild(node);
-    if (!template || template.type != "FRAME") {
-        throw `${node.name} does not have a valid template`;
-    }
-
-    const props: Properties = {};
-
-    if (node.layoutWrap == "WRAP") {
-        props.CellPadding = new UDim2(node.itemSpacing / parent.width, node.counterAxisSpacing! / parent.height);
-        props.CellSize = new UDim2(template.width / node.width, template.height / node.height);
-    } else if (node.layoutMode == "HORIZONTAL") {
-        props.Padding = new UDim(node.itemSpacing / node.width, 0);
-        props.FillDirection = new Enum("FillDirection", "Horizontal");
-    } else {
-        props.Padding = new UDim(node.itemSpacing / node.height, 0);
-        props.FillDirection = new Enum("FillDirection", "Vertical");
-    }
-
-    props.SortOrder = new Enum("SortOrder", "LayoutOrder");
-
-    return createInstance(node.layoutWrap == "WRAP" ? "UIGridLayout" : "UIListLayout", props);
+function hasLayout(node: FrameNode): boolean {
+    return node.layoutMode != "NONE"
 }
 
-/**
- * Create a TextLabel with the given node
- * @param node current node
- * @returns TextLabel
- */
-function createText(node: TextNode): Instance {
-    const font = node.fontName as FontName;
-    const [weight, style] = getFont(font);
+function hasPadding(node: FrameNode): boolean {
+    return node.paddingLeft + node.paddingRight + node.paddingTop + node.paddingBottom > 0
+}
 
-    let xAlign: string | undefined;
+// TODO: scale and offset
+function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Children] {
+    const props: Properties = {};
+    const children: Children = {};
+    const parent = getParent(node)!;
+
+    const paddingX = parent.paddingLeft + parent.paddingRight
+    const paddingY = parent.paddingTop + parent.paddingBottom
+    const width = node.width / (parent.width - paddingX)
+    const height = node.height / (parent.height - paddingY)
+
+    if (hasLayout(parent)) {
+        if (node.layoutSizingHorizontal != "FIXED" || node.layoutSizingVertical != "FIXED")
+            children.flex = createUIFlexItem()
+    } else
+        props.Position = new UDim2(node.x / parent.width, node.y / parent.width);
+
+    props.Size = new UDim2(width, height)
+
+    return [props, children]
+}
+
+function createTextLabel(node: TextNode): Instance {
+    const [props, children] = getCommonPropsChildren(node);
+    const [family, weight, style] = getFont(node);
+
+    props.BackgroundTransparency = 1
+    props.FontFace = new Font(family, new Enum("FontWeight", weight), new Enum("FontStyle", style))
+    props.Text = node.characters
+    props.TextColor3 = getColor(node)
+    props.TextSize = node.fontSize as number
+
     switch (node.textAlignHorizontal) {
         case "LEFT":
-            xAlign = "Left";
+            props.TextXAlignment = new Enum("TextXAlignment", "Left");
             break;
         case "RIGHT":
-            xAlign = "Right";
+            props.TextXAlignment = new Enum("TextXAlignment", "Right");
             break;
     }
 
-    let yAlign: string | undefined;
     switch (node.textAlignVertical) {
         case "TOP":
-            yAlign = "Top";
+            props.TextYAlignment = new Enum("TextYAlignment", "Top");
             break;
         case "BOTTOM":
-            yAlign = "Right";
+            props.TextYAlignment = new Enum("TextYAlignment", "Bottom");
             break;
     }
 
-    return createInstance("TextLabel", {
-        BackgroundTransparency: 1,
-        FontFace: new Font(font.family, new Enum("FontWeight", weight), new Enum("FontStyle", style)),
-        Text: node.characters,
-        TextScaled: true,
-        TextColor3: getColor(node),
-        TextXAlignment: xAlign ? new Enum("TextXAlignment", xAlign) : undefined,
-        TextYAlignment: yAlign ? new Enum("TextYAlignment", yAlign) : undefined,
-    });
+    return createInstance("TextLabel", props, children)
 }
 
-/**
- * Create a ScrollingFrame using its children (scrollbar and content)
- * @param node current node
- * @param scrollbar scrolling frame's scrollbar
- * @param content scrolling frame's content
- * @returns ScrollingFrame
- */
-function createScrolling(node: FrameNode, scrollbar: FrameNode, content: FrameNode): Instance {
-    const template = findFirstChild(content);
-    if (!template || template.type != "FRAME") {
-        throw `${node.name} does not have a valid template`;
-    }
+function createFrame(node: FrameNode): Instance {
+    const [props, children] = getCommonPropsChildren(node)
 
-    return createInstance("ScrollingFrame", {
-        CanvasSize: new UDim2(0, 0),
-        AutomaticCanvasSize: new Enum("AutomaticSize", "Y"),
-        ScrollingDirection: new Enum("ScrollingDirection", "Y"),
-        ScrollBarThickness: scrollbar.width,
-    }, {
-        Layout: createLayout(content, node),
-    });
+    if (hasLayout(node))
+        children.layout = createUIListLayout(node)
+
+    if (hasPadding(node))
+        children.padding = createUIPadding(node)
+
+    return createInstance("Frame", props, children)
 }
 
-/**
- * Create a ReactElement that will be converted into code 
- * @param node current node
- * @param parent node's parent
- * @returns the element to be converted into code
- */
-function createNode(node: SceneNode, parent: FrameNode): Instance {
-    // initialize element properties
-    let className = "Frame";
-    let props: Properties = {};
-    let children: Children = {};
+function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: FrameNode): Instance {
+    const [props, children] = getCommonPropsChildren(node)
 
-    // screen frame (ui container)
-    const ancestor = parent ? getParent(parent) : undefined;
+    props.CanvasSize = new UDim2(0, 0)
+    props.AutomaticCanvasSize = new Enum("AutomaticSize", "Y")
+    props.ScrollingDirection = new Enum("ScrollingDirection", "Y")
+    props.ScrollBarThickness = scrollbar.width
+    props.VerticalScrollBarInset = new Enum("ScrollBarInset", "Always")
 
-    // merge the given element with the current node's element
-    function merge(element: Instance) {
-        className = element.className;
-        props = { ...props, ...element.properties };
-        children = { ...children, ...element.children };
-    }
+    children.layout = createUIListLayout(content)
 
-    if (parent && ancestor) {
-        // the node has a parent and it is under the screen container
-        props.Position = new UDim2(node.x / parent.width, node.y / parent.width);
-        props.Size = new UDim2(node.width / parent.width, node.height / parent.height);
-    } else {
-        // the node is under the screen container so center it
-        props.AnchorPoint = new Vector2(0.5, 0.5);
-        props.Position = new UDim2(0.5, 0.5);
-        props.Size = new UDim2(node.width / parent.width, node.height / parent.height);
+    if (hasPadding(node))
+        children.padding = createUIPadding(node)
 
-        // add an aspect ratio to keep the dimensions
-        children.Aspect = createInstance("UIAspectRatioConstraint", {
-            AspectRatio: node.width / node.height,
-        });
-    }
+    return createInstance("ScrollingFrame", props, children)
+}
 
-    // TODO: add an option for this?
-    props.BackgroundTransparency = 0.5;
-
+function robloxify(node: SceneNode): Instance {
     if (node.type == "FRAME") {
-        const scrollbar = findChildNamed(node, SCROLLING_SCROLLBAR_NAME);
-        const content = findChildNamed(node, SCROLLING_CONTENT_NAME);
+        const scrollbar = findChildNamed(node, SCROLLING_SCROLLBAR_NAME)
+        const content = findChildNamed(node, SCROLLING_CONTENT_NAME)
 
-        // check if the node could be a scrolling frame
-        if (scrollbar && scrollbar.type == "FRAME" && content && content.type == "FRAME") {
-            merge(createScrolling(node, scrollbar, content));
-        } else if (node.layoutMode != "NONE" && parent) {
-            // add a ui layout if needed
-            children.Layout = createLayout(node, parent);
+        if (scrollbar && content) {
+            return createScrollingFrame(node, scrollbar, content)
         }
+
+        return createFrame(node)
     } else if (node.type == "TEXT") {
-        // text label
-        merge(createText(node));
+        return createTextLabel(node)
     }
 
-    return createInstance(className, props, children);
+    throw `Cannot convert a ${node.type} node type `
 }
 
 function raiseError(e: string): CodegenResult[] {
@@ -166,7 +121,7 @@ figma.codegen.on("generate", ({ node, language }) => {
         return raiseError(`Cannot find parent for ${node.name}`)
 
     try {
-        return [translate(language as Framework, createNode(node, parent))];
+        return [translate(language as Framework, robloxify(node))];
     } catch (e) {
         return raiseError(e as string)
     }

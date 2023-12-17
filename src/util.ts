@@ -1,22 +1,8 @@
 import { Color3 } from "./roblox";
 
-type FindResult = FrameNode | GroupNode | undefined;
+type FindResult = FrameNode | undefined;
 
-export function round(x: number): string {
-    const text = x.toString();
-
-    if (text.includes(".")) {
-        const decimals = text.split(".")[1];
-
-        if (decimals.length > 5) {
-            return x.toFixed(5);
-        }
-    }
-
-    return text;
-}
-
-export function getParent(child: SceneNode): FrameNode | undefined {
+export function getParent(child: SceneNode): FindResult {
     if (!child.parent) {
         return;
     }
@@ -31,20 +17,12 @@ export function getParent(child: SceneNode): FrameNode | undefined {
     return;
 }
 
-export function findFirstChild(node: FrameNode): FindResult {
-    return node.findChild((child) => child.type == "GROUP" || child.type == "FRAME") as FindResult;
-}
-
 export function findChildNamed(node: FrameNode, name: string): FindResult {
     return node.findChild((child) => (child.type == "GROUP" || child.type == "FRAME") && child.name == name) as FindResult;
 }
 
 export function getLength(obj: object): number {
     return Object.keys(obj).length;
-}
-
-export function clone<T>(obj: T): T {
-    return JSON.parse(JSON.stringify(obj));
 }
 
 export function getColor(node: GeometryMixin): Color3 | undefined {
@@ -64,7 +42,9 @@ export function getColor(node: GeometryMixin): Color3 | undefined {
     return new Color3(r, g, b);
 }
 
-export function getFont(font: FontName): [string, string] {
+export function getFont(node: TextNode): [string, string, string] {
+    const font = node.fontName as FontName
+
     let weight = font.style.match("Thin|ExtraLight|Light|Regular|Medium|SemiBold|Bold|ExtraBold|Black")?.[0];
     if (!weight) {
         weight = "Regular"
@@ -74,5 +54,5 @@ export function getFont(font: FontName): [string, string] {
 
     const style = font.style.includes("Italic") ? "Italic" : "Normal";
 
-    return [weight, style];
+    return [font.family, weight, style];
 }

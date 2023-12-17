@@ -1,6 +1,6 @@
 import { SCROLLING_CONTENT_NAME, SCROLLING_SCROLLBAR_NAME } from "./constants";
 import { Children, Enum, Font, Instance, Properties, UDim, UDim2, Vector2, createInstance } from "./roblox";
-import { translate } from "./translators/index";
+import { Framework, translate } from "./translators/index";
 import { findChildNamed, findFirstChild, getColor, getFont, getParent } from "./util";
 
 /**

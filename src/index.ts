@@ -2,7 +2,7 @@ import { SCROLLING_CONTENT_NAME, SCROLLING_SCROLLBAR_NAME } from "./constants";
 import { createUIFlexItem, createUIListLayout, createUIPadding } from "./layout";
 import { Children, Enum, Font, Instance, Properties, UDim2, createInstance } from "./roblox";
 import { Framework, translate } from "./translators/index";
-import { findChildNamed, getColor, getFont, getParent, getTransparency } from "./util";
+import { findChildNamed, fixed, getColor, getFont, getParent, getTransparency } from "./util";
 
 function hasLayout(node: FrameNode): boolean {
     return node.layoutMode != "NONE"
@@ -53,7 +53,9 @@ function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Childr
     const children: Children = {};
     const parent = getParent(node)!;
 
-    props.Position = computePosition(node)
+    if (getParent(parent))
+        props.Position = computePosition(node)
+
     props.Size = computeSize(node)
 
     if (hasLayout(parent) && node.layoutSizingHorizontal != "FIXED") {
@@ -101,8 +103,13 @@ function createTextLabel(node: TextNode): Instance {
     return createInstance("TextLabel", props, children)
 }
 
+function createUIAspectRatioConstraint(node: FrameNode): Instance {
+    return createInstance("UIAspectRatioConstraint", { AspectRatio: fixed(node.width / node.height) })
+}
+
 function createFrame(node: FrameNode): Instance {
     const [props, children] = getCommonPropsChildren(node)
+    const parent = getParent(node)!
 
     const color = getColor(node)
     if (color)
@@ -122,6 +129,9 @@ function createFrame(node: FrameNode): Instance {
 
     if (hasPadding(node))
         children.padding = createUIPadding(node)
+
+    if (!getParent(parent))
+        children.aspect = createUIAspectRatioConstraint(node)
 
     node.children.filter(isConvertible).forEach((child) => {
         children[child.name] = robloxify(child)

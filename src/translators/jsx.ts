@@ -1,3 +1,4 @@
+import { formatName } from "../naming";
 import { Instance } from "../roblox";
 import { TypeScriptSerializer } from "../seralizers/typescript";
 import { Snippet } from "../snippet";
@@ -8,7 +9,7 @@ function translate(instance: Instance, indent: number = 0): string {
 
     snippet.writeLine(`<${instance.className.toLowerCase()}`)
     snippet.indent++
-    snippet.writeLine(`Key="${instance.name.toLowerCase()}"`)
+    snippet.writeLine(`Key="${formatName(instance.name)}"`)
 
     Object.entries(instance.properties).forEach(([property, value]) => {
         const serialized = serializer.ser(value)

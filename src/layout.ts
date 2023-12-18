@@ -1,25 +1,4 @@
 import { Enum, Instance, Properties, UDim, createInstance } from "./roblox";
-import { getParent } from "./util";
-
-export function constrainX(node: FrameNode, value: number): number {
-    const parent = getParent(node)!
-    const padding = parent.paddingLeft + parent.paddingRight
-
-    if (parent.constraints.horizontal == "SCALE")
-        return value / (parent.width - padding)
-
-    return value
-}
-
-export function constrainY(node: FrameNode, value: number): number {
-    const parent = getParent(node)!
-    const padding = parent.paddingTop + parent.paddingBottom
-
-    if (parent.constraints.vertical == "SCALE")
-        return value / (parent.height - padding)
-
-    return value
-}
 
 export function createUIPadding(node: FrameNode): Instance {
     const props: Properties = {}
@@ -42,7 +21,6 @@ export function createUIPadding(node: FrameNode): Instance {
 export function createUIListLayout(node: FrameNode): Instance {
     const props: Properties = {}
 
-    // TODO: node.counterAxisSpacing corresponds to vertical spacing but roblox doesnt support it
     if (node.itemSpacing > 0)
         props.Padding = new UDim(0, node.itemSpacing)
 
@@ -60,7 +38,7 @@ export function createUIListLayout(node: FrameNode): Instance {
                 props.HorizontalAlignment = new Enum("HorizontalAlignment", "Right")
                 break
             case "SPACE_BETWEEN":
-                props.HorizontalFlex = new Enum("HorizontalFlex", "SpaceBetween")
+                props.HorizontalFlex = new Enum("UIFlexAlignment", "SpaceBetween")
                 break
         }
 
@@ -81,7 +59,7 @@ export function createUIListLayout(node: FrameNode): Instance {
                 props.VerticalAlignment = new Enum("VerticalAlignment", "Bottom")
                 break
             case "SPACE_BETWEEN":
-                props.VerticalFlex = new Enum("VerticalFlex", "SpaceBetween")
+                props.VerticalFlex = new Enum("UIFlexAlignment", "SpaceBetween")
                 break
         }
 
@@ -100,6 +78,6 @@ export function createUIListLayout(node: FrameNode): Instance {
 
 export function createUIFlexItem(): Instance {
     return createInstance("UIFlexItem", {
-        FlexMode: new Enum("FlexMode", "Fill")
+        FlexMode: new Enum("UIFlexMode", "Fill")
     })
 }

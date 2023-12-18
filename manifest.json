@@ -21,6 +21,10 @@
     {
       "label": "JSX",
       "value": "jsx"
+    },
+    {
+      "label": "Vanilla",
+      "value": "vanilla"
     }
   ]
 }

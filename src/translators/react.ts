@@ -1,4 +1,4 @@
-import { formatName } from "../naming";
+import { fixNames } from "../naming";
 import { Instance } from "../roblox";
 import { LuauSerializer } from "../seralizers/luau";
 import { Snippet } from "../snippet";
@@ -22,7 +22,7 @@ function translate(instance: Instance, indent: number = 0): string {
         snippet.indent++
 
         instance.children.forEach((child) => {
-            snippet.writeLine(`${formatName(child.name)} = ${translate(child, snippet.indent)},`)
+            snippet.writeLine(`${child.name} = ${translate(child, snippet.indent)},`)
         })
 
         snippet.indent--
@@ -35,5 +35,7 @@ function translate(instance: Instance, indent: number = 0): string {
 }
 
 export function TranslateReact(instance: Instance): CodegenResult {
+    fixNames(instance)
+
     return { title: "Luau", code: translate(instance), language: "PYTHON" }
 }

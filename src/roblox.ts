@@ -7,8 +7,8 @@ export interface Properties {
 }
 
 export interface Instance {
+    name: string;
     readonly className: string;
-    readonly name: string;
     readonly properties: Properties;
     readonly children: Instance[];
 }

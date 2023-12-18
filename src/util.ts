@@ -1,5 +1,9 @@
 import { Color3 } from "./roblox";
 
+export function fixed(value: number): number {
+    return Math.round((value + Number.EPSILON) * 1e5) / 1e5
+}
+
 export function getLength(obj: object): number {
     return Object.keys(obj).length;
 }
@@ -47,7 +51,7 @@ export function getTransparency(node: GeometryMixin): number | undefined {
     if (!fill || !fill.opacity)
         return
 
-    return (1 - fill.opacity)
+    return fixed(1 - fill.opacity)
 }
 
 export function getFont(node: TextNode): [string, string, string] {

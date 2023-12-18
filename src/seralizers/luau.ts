@@ -19,7 +19,7 @@ export class LuauSerializer extends Serializer {
     }
 
     serUDim2(value: UDim2): string {
-        return `UDim2.fromScale(${value.x.scale}, ${value.y.scale})`
+        return `UDim2.new(${value.x.scale}, ${value.x.offset}, ${value.y.scale}, ${value.y.offset})`
     }
 
     serVector2(value: Vector2): string {

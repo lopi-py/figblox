@@ -1,3 +1,5 @@
+import { fixed } from "./util";
+
 export type Value = boolean | number | string | Color3 | Enum | Font | UDim | UDim2 | Vector2;
 
 export interface Properties {
@@ -32,9 +34,9 @@ export class UDim2 {
     x: UDim
     y: UDim
 
-    constructor(x: number, y: number) {
-        this.x = new UDim(x, 0)
-        this.y = new UDim(y, 0)
+    constructor(xScale: number, xOffset: number, yScale: number, yOffset: number) {
+        this.x = new UDim(fixed(xScale), xOffset)
+        this.y = new UDim(fixed(yScale), yOffset)
     }
 }
 

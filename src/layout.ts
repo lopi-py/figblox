@@ -15,7 +15,7 @@ export function createUIPadding(node: FrameNode): Instance {
     if (node.paddingBottom > 0)
         props.PaddingBottom = new UDim(0, node.paddingBottom)
 
-    return createInstance("UIPadding", props)
+    return createInstance("UIPadding", "Padding", props)
 }
 
 export function createUIListLayout(node: FrameNode): Instance {
@@ -73,11 +73,11 @@ export function createUIListLayout(node: FrameNode): Instance {
         }
     }
 
-    return createInstance("UIListLayout", props)
+    return createInstance("UIListLayout", "Layout", props)
 }
 
 export function createUIFlexItem(): Instance {
-    return createInstance("UIFlexItem", {
+    return createInstance("UIFlexItem", "Flex", {
         FlexMode: new Enum("UIFlexMode", "Fill")
     })
 }

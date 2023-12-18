@@ -4,10 +4,6 @@ export function fixed(value: number): number {
     return Math.round((value + Number.EPSILON) * 1e5) / 1e5
 }
 
-export function getLength(obj: object): number {
-    return Object.keys(obj).length;
-}
-
 export function getParent(child: SceneNode): FrameNode | undefined {
     if (!child.parent) {
         return;

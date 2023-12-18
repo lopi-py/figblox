@@ -1,6 +1,6 @@
 import { SCROLLING_CONTENT_NAME, SCROLLING_SCROLLBAR_NAME } from "./constants";
 import { createUIFlexItem, createUIListLayout, createUIPadding } from "./layout";
-import { Children, Enum, Font, Instance, Properties, UDim2, createInstance } from "./roblox";
+import { Enum, Font, Instance, Properties, UDim2, createInstance } from "./roblox";
 import { Framework, translate } from "./translators/index";
 import { findChildNamed, fixed, getColor, getFont, getParent, getTransparency } from "./util";
 
@@ -48,9 +48,9 @@ function computePosition(node: FrameNode | TextNode): UDim2 {
     return new UDim2(x, 0, y, 0)
 }
 
-function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Children] {
+function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Instance[]] {
     const props: Properties = {};
-    const children: Children = {};
+    const children: Instance[] = [];
     const parent = getParent(node)!;
 
     if (getParent(parent))
@@ -59,7 +59,7 @@ function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Childr
     props.Size = computeSize(node)
 
     if (hasLayout(parent) && node.layoutSizingHorizontal != "FIXED") {
-        children.flex = createUIFlexItem()
+        children.push(createUIFlexItem())
     }
 
     return [props, children]
@@ -100,11 +100,11 @@ function createTextLabel(node: TextNode): Instance {
             break;
     }
 
-    return createInstance("TextLabel", props, children)
+    return createInstance("TextLabel", node.name, props, children)
 }
 
 function createUIAspectRatioConstraint(node: FrameNode): Instance {
-    return createInstance("UIAspectRatioConstraint", { AspectRatio: fixed(node.width / node.height) })
+    return createInstance("UIAspectRatioConstraint", "Aspect", { AspectRatio: fixed(node.width / node.height) })
 }
 
 function createFrame(node: FrameNode): Instance {
@@ -125,19 +125,19 @@ function createFrame(node: FrameNode): Instance {
         props.ClipsDescendants = true
 
     if (hasLayout(node))
-        children.layout = createUIListLayout(node)
+        children.push(createUIListLayout(node))
 
     if (hasPadding(node))
-        children.padding = createUIPadding(node)
+        children.push(createUIPadding(node))
 
     if (!getParent(parent))
-        children.aspect = createUIAspectRatioConstraint(node)
+        children.push(createUIAspectRatioConstraint(node))
 
     node.children.filter(isConvertible).forEach((child) => {
-        children[child.name] = robloxify(child)
+        children.push(robloxify(child))
     })
 
-    return createInstance("Frame", props, children)
+    return createInstance("Frame", node.name, props, children)
 }
 
 function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: FrameNode): Instance {
@@ -159,16 +159,16 @@ function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: Fr
     props.ScrollBarThickness = scrollbar.width
     props.VerticalScrollBarInset = new Enum("ScrollBarInset", "Always")
 
-    children.layout = createUIListLayout(content)
+    children.push(createUIListLayout(content))
 
     if (hasPadding(content))
-        children.padding = createUIPadding(content)
+        children.push(createUIPadding(content))
 
     content.children.filter(isConvertible).forEach((child) => {
-        children[child.name] = robloxify(child)
+        children.push(robloxify(child))
     })
 
-    return createInstance("ScrollingFrame", props, children)
+    return createInstance("ScrollingFrame", node.name, props, children)
 }
 
 function robloxify(node: SceneNode): Instance {

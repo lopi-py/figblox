@@ -6,12 +6,11 @@ export interface Properties {
     [key: string]: Value;
 }
 
-export type Children = Record<string, Instance>;
-
 export interface Instance {
     readonly className: string;
+    readonly name: string;
     readonly properties: Properties;
-    readonly children: Children;
+    readonly children: Instance[];
 }
 
 export class Color3 {
@@ -44,6 +43,6 @@ export class Vector2 {
     constructor(public x: number, public y: number) { }
 }
 
-export function createInstance(className: string, properties: Properties, children?: Children): Instance {
-    return { className, properties, children: children || {} }
+export function createInstance(className: string, name: string, properties: Properties, children?: Instance[]): Instance {
+    return { className, name, properties, children: children || [] }
 }

@@ -1,7 +1,6 @@
 import { Instance } from "../roblox";
 import { LuauSerializer } from "../seralizers/luau";
 import { Snippet } from "../snippet";
-import { getLength } from "../util";
 
 function translate(instance: Instance, indent: number = 0): string {
     const serializer = new LuauSerializer();
@@ -17,13 +16,13 @@ function translate(instance: Instance, indent: number = 0): string {
     snippet.indent--
     snippet.write("}")
 
-    if (getLength(instance.children) > 0) {
+    if (instance.children.length > 0) {
         snippet.writeLine(", {")
         snippet.indent++
 
-        Object.entries(instance.children).forEach(([name, child]) =>
-            snippet.writeLine(`${name.toLowerCase()} = ${translate(child, snippet.indent)},`)
-        )
+        instance.children.forEach((child) => {
+            snippet.writeLine(`${child.name.toLowerCase()} = ${translate(child, snippet.indent)},`)
+        })
 
         snippet.indent--
         snippet.write("}")

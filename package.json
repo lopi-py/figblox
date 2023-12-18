@@ -1,6 +1,6 @@
 {
   "name": "figblox",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "A plugin to convert a Figma design into Roblox",
   "main": "out/index.js",
   "scripts": {
@@ -10,7 +10,6 @@
   "license": "MIT",
   "devDependencies": {
     "@figma/plugin-typings": "^1.82.0",
-    "concurrently": "^8.2.0",
     "typescript": "*"
   },
   "dependencies": {

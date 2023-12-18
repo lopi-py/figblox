@@ -1,19 +1,11 @@
 import { Color3 } from "./roblox";
 
-type FindResult = FrameNode | GroupNode | undefined;
+export function fixed(value: number): number {
+    return Math.round((value + Number.EPSILON) * 1e5) / 1e5
+}
 
-export function round(x: number): string {
-    const text = x.toString();
-
-    if (text.includes(".")) {
-        const decimals = text.split(".")[1];
-
-        if (decimals.length > 5) {
-            return x.toFixed(5);
-        }
-    }
-
-    return text;
+export function getLength(obj: object): number {
+    return Object.keys(obj).length;
 }
 
 export function getParent(child: SceneNode): FrameNode | undefined {
@@ -31,40 +23,40 @@ export function getParent(child: SceneNode): FrameNode | undefined {
     return;
 }
 
-export function findFirstChild(node: FrameNode): FindResult {
-    return node.findChild((child) => child.type == "GROUP" || child.type == "FRAME") as FindResult;
+export function findChildNamed(node: FrameNode, name: string): FrameNode | undefined {
+    return node.findChild((child) => child.name == name && child.type == "FRAME") as FrameNode | undefined;
 }
 
-export function findChildNamed(node: FrameNode, name: string): FindResult {
-    return node.findChild((child) => (child.type == "GROUP" || child.type == "FRAME") && child.name == name) as FindResult;
-}
+export function getUniqueFill(node: GeometryMixin): SolidPaint | undefined {
+    const fills = node.fills as Paint[]
+    const fill = fills[0]
 
-export function objectLength(obj: object): number {
-    return Object.keys(obj).length;
-}
+    if (!fill || fill.type != "SOLID")
+        return
 
-export function clone<T>(obj: T): T {
-    return JSON.parse(JSON.stringify(obj));
+    return fill
 }
 
 export function getColor(node: GeometryMixin): Color3 | undefined {
-    const fills = node.fills as Paint[];
-    const first = fills[0];
+    const fill = getUniqueFill(node)
+    if (!fill)
+        return
 
-    if (!first || first.type != "SOLID") {
-        return;
-    }
-
-    const { r, g, b } = first.color;
-
-    if (r == 0 && g == 0 && b == 0) {
-        return;
-    }
-
-    return new Color3(r, g, b);
+    const { r, g, b } = fill.color
+    return new Color3(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
 }
 
-export function getFont(font: FontName): [string, string] {
+export function getTransparency(node: GeometryMixin): number | undefined {
+    const fill = getUniqueFill(node)
+    if (!fill || !fill.opacity)
+        return
+
+    return fixed(1 - fill.opacity)
+}
+
+export function getFont(node: TextNode): [string, string, string] {
+    const font = node.fontName as FontName
+
     let weight = font.style.match("Thin|ExtraLight|Light|Regular|Medium|SemiBold|Bold|ExtraBold|Black")?.[0];
     if (!weight) {
         weight = "Regular"
@@ -74,5 +66,5 @@ export function getFont(font: FontName): [string, string] {
 
     const style = font.style.includes("Italic") ? "Italic" : "Normal";
 
-    return [weight, style];
+    return [font.family, weight, style];
 }

@@ -15,8 +15,12 @@
       "value": "react"
     },
     {
-      "label": "RobloxTS",
-      "value": "rbxts"
+      "label": "Fusion",
+      "value": "fusion"
+    },
+    {
+      "label": "JSX",
+      "value": "jsx"
     }
   ]
 }

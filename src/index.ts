@@ -124,6 +124,9 @@ function createFrame(node: FrameNode): Instance {
     if (node.clipsContent)
         props.ClipsDescendants = true
 
+    if (hasLayout(parent))
+        props.OrderLayout = parent.children.findIndex((child) => child.id == node.id) + 1
+
     if (hasLayout(node))
         children.push(createUIListLayout(node))
 

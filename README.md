@@ -8,14 +8,16 @@ Get the [figma plugin](https://www.figma.com/community/plugin/125963308053498387
 > Your designs must be inside of a `1920x1080` frame, so the plugin can get proper scales
 
 ## Demo
+
 ![image](https://github.com/lopi-py/figblox/assets/70210066/1d2fb315-7c85-441b-b5ae-fbc5dcad40bc)
 ![image](https://github.com/lopi-py/figblox/assets/70210066/8852fe42-fc24-40ed-ac21-66c2317c456f)
 ![image](https://github.com/lopi-py/figblox/assets/70210066/03f2a95e-8801-4f8a-8539-39a07e56036e)
 
 ## Supported codegen frameworks
-* [React](https://github.com/jsdotlua/react-lua)
-* [Fusion](https://elttob.uk/Fusion/0.2/)
-* [JSX](https://roblox-ts.com/docs/guides/roact-jsx)
+
+- [React](https://github.com/jsdotlua/react-lua)
+- [Fusion](https://elttob.uk/Fusion/0.2/)
+- [JSX](https://roblox-ts.com/docs/guides/roact-jsx)
 
 ## Supported properties
 
@@ -31,6 +33,7 @@ Those are shared properties between all instances
 - BackgroundColor3
 - BackgroundTransparency
 - ClipsDescendants
+- OrderLayout
 
 ### ScrollingFrame
 

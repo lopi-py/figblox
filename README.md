@@ -33,7 +33,7 @@ Those are shared properties between all instances
 - BackgroundColor3
 - BackgroundTransparency
 - ClipsDescendants
-- OrderLayout
+- LayoutOrder
 
 ### ScrollingFrame
 

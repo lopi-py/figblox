@@ -57,6 +57,7 @@ function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Instan
         props.Position = computePosition(node)
 
     props.Size = computeSize(node)
+    props.BorderSizePixel = 0
 
     if (hasLayout(parent) && node.layoutSizingHorizontal != "FIXED") {
         children.push(createUIFlexItem())
@@ -125,7 +126,7 @@ function createFrame(node: FrameNode): Instance {
         props.ClipsDescendants = true
 
     if (hasLayout(parent))
-        props.OrderLayout = parent.children.findIndex((child) => child.id == node.id) + 1
+        props.LayoutOrder = parent.children.findIndex((child) => child.id == node.id) + 1
 
     if (hasLayout(node))
         children.push(createUIListLayout(node))

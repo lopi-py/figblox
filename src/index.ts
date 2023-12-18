@@ -12,24 +12,53 @@ function hasPadding(node: FrameNode): boolean {
     return node.paddingLeft + node.paddingRight + node.paddingTop + node.paddingBottom > 0
 }
 
-// TODO: scale and offset
+function isConvertible(node: SceneNode): boolean {
+    return node.type == "FRAME" || node.type == "TEXT"
+}
+
+function computeSize(node: FrameNode | TextNode): UDim2 {
+    const parent = getParent(node)!
+    const paddingX = parent.paddingLeft + parent.paddingRight
+    const paddingY = parent.paddingTop + parent.paddingBottom
+
+    let width = 0
+    let height = 0
+
+    if (node.layoutSizingHorizontal == "FIXED")
+        width = node.width / (parent.width - paddingX)
+
+    if (node.layoutSizingVertical == "FIXED")
+        height = node.height / (parent.height - paddingY)
+
+    return new UDim2(width, 0, height, 0)
+}
+
+function computePosition(node: FrameNode | TextNode): UDim2 {
+    const parent = getParent(node)!
+
+    let x = 0
+    let y = 0
+
+    if (node.layoutSizingHorizontal == "FIXED")
+        x = node.x / parent.width
+
+    if (node.layoutSizingVertical == "FIXED")
+        y = node.y / parent.height
+
+    return new UDim2(x, 0, y, 0)
+}
+
 function getCommonPropsChildren(node: FrameNode | TextNode): [Properties, Children] {
     const props: Properties = {};
     const children: Children = {};
     const parent = getParent(node)!;
 
-    const paddingX = parent.paddingLeft + parent.paddingRight
-    const paddingY = parent.paddingTop + parent.paddingBottom
-    const width = node.width / (parent.width - paddingX)
-    const height = node.height / (parent.height - paddingY)
+    props.Position = computePosition(node)
+    props.Size = computeSize(node)
 
-    if (hasLayout(parent)) {
-        if (node.layoutSizingHorizontal != "FIXED" || node.layoutSizingVertical != "FIXED")
-            children.flex = createUIFlexItem()
-    } else
-        props.Position = new UDim2(node.x / parent.width, node.y / parent.width);
-
-    props.Size = new UDim2(width, height)
+    if (hasLayout(parent) && node.layoutSizingHorizontal != "FIXED") {
+        children.flex = createUIFlexItem()
+    }
 
     return [props, children]
 }
@@ -46,6 +75,10 @@ function createTextLabel(node: TextNode): Instance {
     const color = getColor(node)
     if (color)
         props.TextColor3 = color
+
+    const transparency = getTransparency(node)
+    if (transparency)
+        props.TextTransparency = transparency
 
     switch (node.textAlignHorizontal) {
         case "LEFT":
@@ -74,16 +107,25 @@ function createFrame(node: FrameNode): Instance {
     const color = getColor(node)
     if (color)
         props.BackgroundColor3 = color
+    else
+        props.BackgroundTransparency = 1
 
     const transparency = getTransparency(node)
     if (transparency)
         props.BackgroundTransparency = transparency
+
+    if (node.clipsContent)
+        props.ClipsDescendants = true
 
     if (hasLayout(node))
         children.layout = createUIListLayout(node)
 
     if (hasPadding(node))
         children.padding = createUIPadding(node)
+
+    node.children.filter(isConvertible).forEach((child) => {
+        children[child.name] = robloxify(child)
+    })
 
     return createInstance("Frame", props, children)
 }
@@ -94,12 +136,14 @@ function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: Fr
     const color = getColor(node)
     if (color)
         props.BackgroundColor3 = color
+    else
+        props.BackgroundTransparency = 1
 
     const transparency = getTransparency(node)
     if (transparency)
         props.BackgroundTransparency = transparency
 
-    props.CanvasSize = new UDim2(0, 0)
+    props.CanvasSize = new UDim2(0, 0, 0, 0)
     props.AutomaticCanvasSize = new Enum("AutomaticSize", "Y")
     props.ScrollingDirection = new Enum("ScrollingDirection", "Y")
     props.ScrollBarThickness = scrollbar.width
@@ -109,6 +153,10 @@ function createScrollingFrame(node: FrameNode, scrollbar: FrameNode, content: Fr
 
     if (hasPadding(content))
         children.padding = createUIPadding(content)
+
+    content.children.filter(isConvertible).forEach((child) => {
+        children[child.name] = robloxify(child)
+    })
 
     return createInstance("ScrollingFrame", props, children)
 }
@@ -127,17 +175,17 @@ function robloxify(node: SceneNode): Instance {
         return createTextLabel(node)
     }
 
-    throw `Cannot convert a ${node.type} node type `
+    throw `Cannot convert a '${node.type}' node type `
 }
 
 function codegenError(e: string): CodegenResult[] {
-    return [{ title: "ERROR!", code: `"${e}"`, language: "JSON" }]
+    return [{ title: "ERROR", code: `${e}`, language: "CSS" }]
 }
 
 figma.codegen.on("generate", ({ node, language }) => {
     const parent = getParent(node);
     if (!parent)
-        return codegenError(`Cannot find parent for ${node.name}`)
+        return codegenError(`Parent not found for '${node.name}'`)
 
     try {
         return [translate(language as Framework, robloxify(node))];

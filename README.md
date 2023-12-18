@@ -18,6 +18,7 @@ Get the [figma plugin](https://www.figma.com/community/plugin/125963308053498387
 - [React](https://github.com/jsdotlua/react-lua)
 - [Fusion](https://elttob.uk/Fusion/0.2/)
 - [JSX](https://roblox-ts.com/docs/guides/roact-jsx)
+- Vanilla (no UI framework)
 
 ## Supported properties
 

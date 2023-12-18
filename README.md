@@ -6,8 +6,8 @@ Get the [figma plugin](https://www.figma.com/community/plugin/125963308053498387
 
 ## Supported properties
 
-- Position
-- Size
+- Position (scale)
+- Size (scale)
 
 Those are shared properties between all instances
 
@@ -54,14 +54,14 @@ Roblox seems buggy when using `UIPadding` and `UIAspectRatioConstraint` inside o
 - FillDirection
 - HorizontalAlignment
 - HorizontalFlex
-- Padding
+- Padding (offset)
 - VerticalAlignment
 - VerticalFlex
 - Wraps
 
 ### UIPadding
 
-- PaddingBottom
-- PaddingLeft
-- PaddingRight
-- PaddingTop
+- PaddingBottom (offset)
+- PaddingLeft (offset)
+- PaddingRight (offset)
+- PaddingTop (offset)

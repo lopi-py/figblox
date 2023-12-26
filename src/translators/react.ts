@@ -7,7 +7,7 @@ function translate(instance: Instance, indent: number = 0): string {
     const serializer = new LuauSerializer();
     const snippet = new Snippet(indent);
 
-    snippet.writeLine(`e("${instance.className}", {`)
+    snippet.writeLine(`Roact.createElement("${instance.className}", {`)
     snippet.indent++
 
     Object.entries(instance.properties).forEach(([property, value]) =>
